@@ -37,7 +37,9 @@ def equals_button():
     elif action == "multiplication":
         text_line.insert(0, first * second)
     elif action == "division":
-        if first % second == 0: 
+        if second == 0:
+            text_line.insert(0, "dude you just tried dividig by zero you can't do that")
+        elif first % second == 0: 
             text_line.insert(0, int(first / second))
         else:
             text_line.insert(0, first / second)
