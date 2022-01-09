@@ -1,20 +1,23 @@
+# Creating a simple calculator to learn how to use Tkinter
 from tkinter import *
 
-root = Tk()
+root = Tk() #Create window
 root.title("Simple Calculator")
 
-text_line = Entry(root, width=35, borderwidth=5)
-text_line.grid(row=0, column=0, columnspan=3, padx=10, pady=10)
+text_line = Entry(root, width=35, borderwidth=5) # Create calculator "screen"
+text_line.grid(row=0, column=0, columnspan=3, padx=10, pady=10) #Implement it into the window
 
-first = 0
-action = ""
+first = 0 # The first number in the equation
+action = "" # The mathematical function being performed
 
 def num_click(number):
+    # What happens when a number button is clicked
     current = text_line.get()
     text_line.delete(0, END)
     text_line.insert(0, current + str(number))
 
 def peula(to_do):
+    # Relating the function button to the actual function being performed, in a global variable
     global first, action
     first = int(text_line.get())
     if to_do == "add":
@@ -28,7 +31,8 @@ def peula(to_do):
     text_line.delete(0, END)
 
 def equals_button():
-    second = int(text_line.get())
+    # What happens when the = button is pressed
+    second = int(text_line.get()) # Second number in the equation (first is global variable "first")
     text_line.delete(0, END)
     if action == "addition":
         text_line.insert(0, first + second)
@@ -40,6 +44,7 @@ def equals_button():
         if second == 0:
             text_line.insert(0, "dude you just tried dividiמg by zero you can't do that")
         elif first % second == 0: 
+            # Return integer (not double) if division is clean
             text_line.insert(0, int(first / second))
         else:
             text_line.insert(0, first / second)
@@ -68,8 +73,7 @@ button_divide = Button(text="/", padx=40, pady=20, command=lambda: peula("divide
 button_equals = Button(text="=", padx=40, pady=20, command=equals_button)
 button_clear = Button(text="Clear", padx=125, pady=20, command=clear_row)
 
-# Put buttons on screen
-
+# Implement buttons on screen
 button_7.grid(row=1, column=0)
 button_8.grid(row=1, column=1)
 button_9.grid(row=1, column=2)
