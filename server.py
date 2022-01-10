@@ -10,28 +10,66 @@ chat_list = []
 class Chat:
     def __init__(self, chatname):
         self.chatname = chatname
-        self.participants = []
+        self.clientnames = []
+        self.clients = []
 
-    def add_participant(self, p_name):
-        self.participants += p_name
+    def add_participant(self, new_participant, addr, p_name):
+        self.clients.append(new_participant)
+        self.clientnames.append(p_name)
+        participants = self.participants_str()
+        new_participant.send(participants.encode())
+        if new_participant.recv(MSG_SIZE).decode() == "got participants":
+            print("got participants")
+            for client in self.clients:
+                client.send(f"{p_name} has joined the chat!".encode())
+            thread = Thread(target = self.handle,
+                                    args = (new_participant, addr))
+            thread.start()
+
+    def participants_str(self):
+        print(self.clientnames)
+        print(sorted(self.clientnames))
+        self.clientnames.sort()
+        participants = ""
+        for member in self.clientnames[:-1]:
+            new = member + ", "
+            participants += new
+        participants += self.clientnames[-1]
+        return participants
+        
+    def handle(self, clientsock, addr):
+        print(f"new connection {addr}")
+        connected = True
+        
+        while connected:
+            # receive message
+            message = clientsock.recv(1024)
+            
+            # broadcast message
+            for client in self.clients:
+                client.send(message)
 
     def get_chatname(self):
         return self.chatname
 
-def create_chat(clientsocket, addr, client_number):
+def create_chat(clientsocket, addr, clientname):
     print("creating chat")
     chatname = clientsocket.recv(MSG_SIZE).decode()
     print("creating " + chatname)
-    chat_list.append(Chat(chatname))
+    new_chat = Chat(chatname)
+    chat_list.append(new_chat)
     clientsocket.send("chat created successfully".encode())
-    #Transpot to created chat, for now
+    clientsocket.recv(MSG_SIZE)
+    new_chat.add_participant(clientsocket, addr, clientname)
 
 def on_new_client(clientsocket, addr, client_number):
     global chat_list
+    c_name = "User" + str(client_number)
+    clientsocket.send(c_name.encode())
     msg = clientsocket.recv(MSG_SIZE).decode()
 
     if msg == "create chat":
-        create_chat(clientsocket, addr, client_number)
+        create_chat(clientsocket, addr, c_name)
     
     elif msg == "join chat":
         print("joining chat")
@@ -55,6 +93,8 @@ def on_new_client(clientsocket, addr, client_number):
                         if i.get_chatname() == chatname:
                             chat = i
                             c.send((chat.get_chatname() + " successfully accessed").encode())
+                            c.recv(MSG_SIZE)
+                            chat.add_participant(clientsocket, addr, c_name)
                     if chat == None:
                         c.send("theres no chat like that how did this even happen".encode())
                 
@@ -63,17 +103,15 @@ def on_new_client(clientsocket, addr, client_number):
             
             else:
                 if c.recv(MSG_SIZE).decode() == "create chat":
-                    create_chat(clientsocket, addr, client_number)
+                    create_chat(clientsocket, addr, c_name)
         else:
             print("something went wrong")
-
-        
 
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     s.bind((HOST, PORT))
     s.listen()
-    client_number = 0
+    client_number = 1
     while True:
         (c, c_addr)= s.accept()
         Thread(target=on_new_client, args=(c, c_addr, client_number)).start()
