@@ -56,7 +56,7 @@ class GUI:
             oops = Label(self.root, text="Something went wrong")
             oops.grid(row=0, column=0)
         else:
-            c.send("yay".encode())
+            c.send("successfully? yay".encode())
             print("opening chatwindow")
             self.root.destroy()
             self.chat_layout(chatname)
@@ -106,8 +106,6 @@ class GUI:
             rcv.start()
 
     def chat_layout(self, chatname):
-        participant_list = c.recv(MSG_SIZE).decode()
-        c.send("got participants".encode())
         self.chatwindow.deiconify()
         self.chatwindow.title(chatname)
         self.chatwindow.resizable(width = False,
@@ -115,14 +113,7 @@ class GUI:
         self.chatwindow.configure(width = 470,
                             height = 550,
                             bg = "#17202A")
-        self.labelHead = Label(self.chatwindow,
-                            bg = "#17202A",
-                            fg = "#EAECEE",
-                            text = participant_list,
-                            font = "Helvetica 13 bold",
-                            pady = 5)
-        
-        self.labelHead.place(relwidth = 1)
+
         self.line = Label(self.chatwindow,
                         width = 450,
                         bg = "#ABB2B9")
@@ -199,6 +190,7 @@ class GUI:
         self.textCons.config(state = DISABLED)
         self.msg = msg
         self.entryMsg.delete(0, END)
+        
         snd = Thread(target = self.sendMessage)
         snd.start()
 
@@ -206,18 +198,29 @@ class GUI:
     def receive(self):
         while True:
             try:
-                message = c.recv(1024).decode()
-                
+                message = c.recv(MSG_SIZE).decode()
+                if message[:14] == "newparticipant":
+                    announcement = message.split(";")
+                    self.labelHead = Label(self.chatwindow,
+                            bg = "#17202A",
+                            fg = "#EAECEE",
+                            text = announcement[0][14:],
+                            font = "Helvetica 13 bold",
+                            pady = 5)
+                    self.labelHead.place(relwidth = 1)
+                    message = announcement[1]
+
                 # insert messages to text box
                 self.textCons.config(state = NORMAL)
                 self.textCons.insert(END,
                                     message+"\n\n")
-                
+                    
                 self.textCons.config(state = DISABLED)
                 self.textCons.see(END)
+
             except Exception as error:
                 # an error will be printed on the command line or console if there's an error
-                print("An error occured!\n")
+                print("An error occured!\n" + str(error))
                 c.close()
                 break
         

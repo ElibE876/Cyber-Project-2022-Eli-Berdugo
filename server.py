@@ -17,18 +17,13 @@ class Chat:
         self.clients.append(new_participant)
         self.clientnames.append(p_name)
         participants = self.participants_str()
-        new_participant.send(participants.encode())
-        if new_participant.recv(MSG_SIZE).decode() == "got participants":
-            print("got participants")
-            for client in self.clients:
-                client.send(f"{p_name} has joined the chat!".encode())
-            thread = Thread(target = self.handle,
-                                    args = (new_participant, addr))
-            thread.start()
+        for client in self.clients:
+            client.send(f"newparticipant{participants};{p_name} has joined the chat!".encode())
+        thread = Thread(target = self.handle,
+                                args = (new_participant, addr))
+        thread.start()
 
     def participants_str(self):
-        print(self.clientnames)
-        print(sorted(self.clientnames))
         self.clientnames.sort()
         participants = ""
         for member in self.clientnames[:-1]:
@@ -43,8 +38,8 @@ class Chat:
         
         while connected:
             # receive message
-            message = clientsock.recv(1024)
-            
+            message = clientsock.recv(MSG_SIZE)
+
             # broadcast message
             for client in self.clients:
                 client.send(message)
