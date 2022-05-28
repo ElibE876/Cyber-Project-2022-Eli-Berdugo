@@ -11,6 +11,9 @@ with open("server_address.txt","r") as addr_file:
 
 class GUI:
     def __init__(self):
+        '''
+        Initializes GUI by opening login window
+        '''
         # create chat window, currently hidden
         self.chatwindow = Tk()
         self.chatwindow.withdraw()
@@ -58,6 +61,9 @@ class GUI:
 
     # function for signing up
     def signUp(self):
+        '''
+        Destroys login window and replaces it with sign up window
+        '''
         # tell server we're signing up
         c.send(":signup".encode())
         print(c.recv(MSG_SIZE).decode())
@@ -102,30 +108,40 @@ class GUI:
 
     # this function serves both login and signup, since they are similar
     def goAhead(self, signUp):
+        '''
+        Handles login or sign up requests by communicating with server
+        '''
         if signUp:
             self.name = self.entryName.get()
             self.password = self.entryPass.get()
-            if self.name == "" or self.password == "":
+            if self.name == "" or self.password == "": 
+                # if entry fields are empty
                 self.takenLabel = Label(self.signup, text = "please enter a name and password dude", font = "Helvetica 12", fg = "#ff0000")
                 self.takenLabel.place(relheight = 0.2, relx = 0.2, rely = 0.8)
+            
             else:    
                 c.send(self.name.encode())
                 print("sent name")
                 if c.recv(MSG_SIZE).decode() == "got name":
                     c.send(self.password.encode())
                     response = c.recv(MSG_SIZE).decode()
+                    
                     if response == "Username invalid":
+                        # if requested username or password are invalid or taken
                         self.takenLabel = Label(self.signup, text = "Username taken or contains comma/colon,\nor password contains comma!", font = "Helvetica 12", fg = "#ff0000")
                         self.takenLabel.place(relheight = 0.1, relx = 0.1, rely = 0.87)
                     else:
                         print(response)
                         self.proceed(self.signup)
+
         else:
             self.name = self.entryName.get()
             self.password = self.entryPass.get()
-            if self.name == "" or self.password == "":
-                    self.takenLabel = Label(self.login, text = "please enter a name and password dude", font = "Helvetica 12", fg = "#ff0000")
-                    self.takenLabel.place(relheight = 0.05, relx = 0.2, rely = 0.87)
+            if self.name == "" or self.password == "": 
+                # if entry fields are empty
+                self.takenLabel = Label(self.login, text = "please enter a name and password dude", font = "Helvetica 12", fg = "#ff0000")
+                self.takenLabel.place(relheight = 0.05, relx = 0.2, rely = 0.87)
+            
             else:
                 c.send(":login".encode())
                 if c.recv(MSG_SIZE).decode() == "got login":   
@@ -134,7 +150,9 @@ class GUI:
                     if c.recv(MSG_SIZE).decode() == "got name":
                         c.send(self.password.encode())
                         print("sent pass")
+                        
                         if c.recv(MSG_SIZE).decode() == "Login failed":
+                            # if login details are incorrect
                             print("fail")
                             self.takenLabel = Label(self.login, text = "Incorrect username or password", font = "Helvetica 12", fg = "#ff0000")
                             self.takenLabel.place(relheight = 0.1, relx = 0.2, rely = 0.87)
@@ -144,6 +162,9 @@ class GUI:
                         
     # screen for choosing to create/join chat
     def proceed(self, destroy):
+        '''
+        Destroys login or sign up window and replaces it with the window to pick between creating and joining a chat
+        '''
         # user is now logged in
         if destroy:
             destroy.destroy()
@@ -161,6 +182,9 @@ class GUI:
 
     # function for if user quits before entering a chat
     def on_closing_root(self):
+        '''
+        Handles request to quit the program during the pre-chat stage
+        '''
         if messagebox.askokcancel("Quit", "Do you want to quit the program?"):
             c.send(":leave".encode())
             c.close()
@@ -169,6 +193,9 @@ class GUI:
 
     # function for if user quits while in chatroom
     def on_closing_chat(self):
+        '''
+        Handles request to leave the chatroom
+        '''
         if messagebox.askokcancel("Quit", "Do you want to leave the chat?"):
             c.send(":leave".encode())
             self.chatwindow.withdraw()
@@ -176,7 +203,10 @@ class GUI:
 
     # Screen to create a name for a new chat
     def create_chat(self, clear1, clear2):
-
+        '''
+        Called if user chooses to create chat -
+        wipes window and inserts field to enter requested name for chat to create
+        '''
         c.send("create chat".encode())
         clear1.grid_forget()
         clear2.grid_forget()
@@ -191,6 +221,9 @@ class GUI:
 
     # Send name of new chat to server and have it be created
     def finish_creating(self, text_line):
+        '''
+        Finishes the chat creation process with server and adds user to chat
+        '''
         chatname = text_line.get()
         if chatname != "":
             c.send(chatname.encode())
@@ -201,6 +234,7 @@ class GUI:
                 oops = Label(self.root, text="Something went wrong")
                 oops.grid(row=3, column=0)
             else:
+                # open chatroom GUI
                 c.send("successfully? yay".encode())
                 print("opening")
                 self.root.destroy()
@@ -212,6 +246,11 @@ class GUI:
 
     # Create screen for joining an existing chat
     def join_chat(self, clear1, clear2):
+        '''
+        Called if user chooses to join chat -
+        wipes window and inserts list of existing chats to join (if there are any)
+        otherwise prompts user to create one themselves
+        '''
         c.send("join chat".encode())
         clear1.grid_forget()
         clear2.grid_forget()
@@ -223,7 +262,7 @@ class GUI:
             if chatnum == "0": # create screen for if no chats are open
                 label = Label(self.root, text="There are no chats currently open.\nTry creating one!", pady=10)
                 label.grid(row=0, column=0)
-                #button to create chat
+                # button to create chat
                 create_button = Button(self.root, text="Create Chat", width=30, pady=10, command=lambda: self.create_chat(label, create_button))
                 create_button.grid(row=1,column=0)
 
@@ -247,6 +286,9 @@ class GUI:
 
     # finish the joining process and enter the chatroom
     def finish_joining(self, chatname):
+        '''
+        Finishes the chat joining process with server and opens chatroom window
+        '''
         c.send(chatname.encode()) # send server requested chatroom to join
         print(chatname)
         response = c.recv(MSG_SIZE).decode()
@@ -264,6 +306,9 @@ class GUI:
 
     # create the chatroom screen and layout
     def chat_layout(self, chatname):
+        '''
+        Defines the chatroom layout and elements
+        '''
         self.chatwindow.deiconify()
         self.chatwindow.title(chatname)
         self.chatwindow.resizable(width = False, height = False)
@@ -289,8 +334,7 @@ class GUI:
         
         self.entryMsg = Entry(self.labelBottom, bg = "#2C3E50", fg = "#EAECEE", font = "Helvetica 13") # entry box for message sending
         
-        # place the given widget
-        # into the gui window
+        # place the given widget into the GUI window
         self.entryMsg.place(relwidth = 0.68, relheight = 0.06, rely = 0.008, relx = 0.083)
         self.entryMsg.focus()
         
@@ -314,8 +358,7 @@ class GUI:
         # create a scroll bar
         scrollbar = Scrollbar(self.textCons)
 
-        # place the scroll bar
-        # into the gui window
+        # place the scroll bar into the GUI window
         scrollbar.place(relheight = 1, relx = 0.974)
         scrollbar.config(command = self.textCons.yview)
         
@@ -323,6 +366,9 @@ class GUI:
 
     # function to receive messages
     def receive(self):
+        '''
+        Operates as thread to receive messages from server
+        '''
         while True:
             try:
                 incoming = c.recv(MSG_SIZE).decode() # receive message/update from server
@@ -347,13 +393,18 @@ class GUI:
                 break
 
     # function to insert messages into textbox           
-    def handle(self, message):      
-        if message[:15] == ":newparticipant": # update participant list at top of screen and insert announcement to console
+    def handle(self, message):
+        '''
+        Handles messages received in the receive() function and inserts the appropriate parts into the text console
+        ''' 
+        if message[:15] == ":newparticipant": 
+            # update participant list at top of screen and insert announcement to console
             announcement = message.split(";")
             participant_list = announcement[0][15:]
             username_index = participant_list.find(self.name)
             
-            if username_index != -1: # if current user is in the participant list, update the label
+            if username_index != -1: 
+                # if current user is in the participant list, update the label
                 self.labelHead.config(state=NORMAL)
                 self.labelHead.delete("1.0", END)
                 if username_index == 0:
@@ -373,12 +424,14 @@ class GUI:
 
             message = announcement[1]
         
-        elif message[:16] == ":participantleft": # update participant list at top of screen and insert announcement to console
+        elif message[:16] == ":participantleft": 
+            # update participant list at top of screen and insert announcement to console
             announcement = message.split(";")
             participant_list = announcement[0][16:]
             username_index = participant_list.find(self.name)
             
-            if username_index != -1: # if current user is in the participant list, update the label
+            if username_index != -1: 
+                # if current user is in the participant list, update the label
                 self.labelHead.config(state=NORMAL)
                 self.labelHead.delete("1.0", END)
                 if username_index == 0:
@@ -399,7 +452,8 @@ class GUI:
             message = announcement[1]
 
         # insert messages to text box
-        if ":" in message[1:]: # check if it's normal message from other user
+        if ":" in message[1:]: 
+            # check if it's normal message from other user
             index = message.find(":")
             self.textCons.config(state = NORMAL)
             self.textCons.insert(END, message[:index]+":", 'bold')
@@ -407,7 +461,8 @@ class GUI:
             self.textCons.config(state = DISABLED)
             self.textCons.see(END)
         
-        else: # this means it's an announcement/update from the server
+        else: 
+            # this means it's an announcement/update from the server
             self.textCons.config(state = NORMAL)
             self.textCons.insert(END, message + "\n\n", 'bold')
             self.textCons.config(state = DISABLED)
@@ -416,6 +471,9 @@ class GUI:
 
     # start the thread for sending messages
     def sendButton(self, msg):
+        '''
+        Called if send button pressed, starts a thread for sending the message and wipes the entry box
+        '''
         self.textCons.config(state = DISABLED)
         self.msg = msg
         self.entryMsg.delete(0, END)
@@ -425,6 +483,9 @@ class GUI:
 
     # function to send messages
     def sendMessage(self):
+        '''
+        Thread to send messages
+        '''
         self.textCons.config(state=DISABLED)
         message = (f"{self.name}: {self.msg}")
         c.send(message.encode())   

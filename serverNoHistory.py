@@ -19,6 +19,9 @@ key = userbank.load_key()
 # this class defines users connected to the server
 class Client: 
     def __init__(self, socket, addr, name):
+        '''
+        Initializes Client object representing a user connected to the server
+        '''
         self.socket = socket
         self.addr = addr
         self.name = name
@@ -43,8 +46,10 @@ class Client:
 
 # this class defines existing chatrooms
 class Chat:
-    # initialize new chat with name and empty list of participants
     def __init__(self, chatname):
+        '''
+        Initializes new chat with name and empty list of participants
+        '''
         self.chatname = chatname
         self.clients = []
         self.clientnames = []
@@ -52,8 +57,13 @@ class Chat:
     def get_chatname(self):
         return self.chatname
 
-    # add new participant to current chatroom
     def add_participant(self, new_participant):
+        '''
+        Adds a new participant to the chatroom
+
+        :param new_participant: the user to be added to the chat
+        :type new_participant: (Client)
+        '''
         self.clients.append(new_participant)
         self.clientnames.append(new_participant.get_name())
         participants = self.participants_str() # update str participant list to send to client (to appear at top of screen)
@@ -63,8 +73,13 @@ class Chat:
             client.send(f":newparticipant{participants};{new_participant.get_name()} has joined the chat!".encode())
         self.handle(new_participant) # handle outgoing messages from new participant
 
-    # remove certain participant from current chatroom
     def remove_participant(self, participant):
+        '''
+        Removes a certain participant from the chatroom
+
+        :param participant: the user to be removed from the chat
+        :type new_participant: (Client)
+        '''
         self.clients.remove(participant)
         self.clientnames.remove(participant.get_name()) # update participant list to send to client (to appear at top of screen)
         participants = self.participants_str()
@@ -77,8 +92,13 @@ class Chat:
             # if the leaving participant was the last one, removes the chat from the chatlist (effectively shutting it down)
             chat_list.remove(self)
 
-    # creates str object of alphabetically sorted list of participants, to appear at the top of client screen
     def participants_str(self):
+        '''
+        Creates an alphabetically sorted list of participants, to appear at the top of client screen
+
+        :return: an alphabetically sorted list of participants
+        :rtype: (str)
+        '''
         self.clientnames.sort()
         participants = ""
         if len(self.clientnames) > 0:
@@ -87,8 +107,13 @@ class Chat:
             participants += self.clientnames[-1]
         return participants
         
-    # function to handle outgoing messages from certain participant
-    def handle(self, client): 
+    def handle(self, client):
+        '''
+        Handles messages coming in from the client that the current thread is connected to, and sends them out to the other participants in the chatroom
+
+        :param client: the client that this thread is receiving messages from
+        :type client: (Client)
+        '''
         print(f"new connection {client.get_addr()}")
         chatroom = True # participant is currently in the chatroom
         
@@ -100,18 +125,24 @@ class Chat:
                 client.send(":left".encode())
                 self.remove_participant(client)
                 chatroom = False
-                on_new_client(client.get_socket(), client.get_addr(), False, client)
+                on_new_client(client.get_socket(), client.get_addr(), False, client) # client returns to join/create choosing screen
 
             else:
                 # broadcast message to other participants
                 for member in self.clients:
                     member.send(message)
 
-# handle client request to create chat
 def create_chat(client):
+    '''
+    Handles client request to create chat, and adds them to it
+
+    :param client: the client that the request is from
+    :type client: (Client)
+    '''
     print("creating chat")
     chatname = client.recv(MSG_SIZE).decode() # receive the new chat's name
-    if chatname == ":leave": # handle unexpected request to quit
+    if chatname == ":leave": 
+        # handle unexpected request to quit
         client.get_socket().close()
         clients_list.remove(client)
     else:
@@ -125,6 +156,12 @@ def create_chat(client):
 
 # handle client request to join chat
 def join_chat(client):
+    '''
+    Handles client request to join chat
+    
+    :param client: the client that the request is from
+    :type client: (Client)
+    '''
     global chat_list
 
     print("joining chat")
@@ -144,7 +181,8 @@ def join_chat(client):
                 print("chatlist received")
                 chatname = client.recv(MSG_SIZE).decode() # receive from client requested chatroom to join
 
-                if chatname == ":leave": # handle unexpected request to quit
+                if chatname == ":leave": 
+                    # handle unexpected request to quit
                     client.get_socket().close()
                     clients_list.remove(client)
                 else:
@@ -174,8 +212,18 @@ def join_chat(client):
         client.get_socket().close()
         clients_list.remove(client)
 
-# handles new client joining & client switching chat
 def on_new_client(c, c_addr, first_go, existing):
+    '''
+    Handles new client connecting to the server & a client that's switching chats
+
+    :param c: socket of the client
+    :type c: (socket)
+    :param first_go: whether or not the client is connecting for the first time
+    :type first_go: (boolean)
+    :param existing: if the client was already connected, the Client object associated with them
+    :type existing: (Client)
+    '''
+    
     # variables for accessing user database are global
     global key
     global path
