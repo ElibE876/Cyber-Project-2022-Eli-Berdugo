@@ -82,7 +82,7 @@ def confirm_user(name, password):
         return False
 
 # as the name suggests
-def clear_database():
+def clear_database(path):
     global user_list
     user_list = []
     with open(path, "wb") as file:
