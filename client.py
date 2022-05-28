@@ -362,7 +362,6 @@ class GUI:
                 elif username_index == len(participant_list) - len(self.name):
                     self.labelHead.insert(END, participant_list[:username_index])
                     self.labelHead.insert(END, self.name, "current_user")
-                    print("opt2")
                 else:
                     username_index = participant_list.find(", " + self.name + ",") + 2 # make sure the username we find isn't part of someone else's
                     if username_index != 1:
