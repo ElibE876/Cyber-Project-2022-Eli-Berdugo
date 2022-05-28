@@ -4,10 +4,6 @@ from tkinter import messagebox
 from threading import Thread
 
 MSG_SIZE = 1024
-with open("server_address.txt","r") as addr_file:
-    content = addr_file.read().split(",")
-    ADDR = content[0]
-    PORT = int(content[1])
 
 class GUI:
     def __init__(self):
@@ -487,13 +483,36 @@ class GUI:
         c.send(message.encode())   
 
 def main():
+    global ADDR
+    global PORT
     global c
-    # connect to server
+    
     try:
+        with open("server_address.txt","r") as addr_file:
+            # obtain server address
+            content = addr_file.read().split(",")
+            ADDR = content[0]
+            PORT = int(content[1])
+        
+        # connect to server
         c = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         c.connect((ADDR, PORT))
+        
         # create a GUI class object
         GUI()
+
+    except FileNotFoundError:
+        # window notifying client that the server address file wasn't found
+        server_down = Tk()
+        server_down.title("Couldn't find server address file")
+        server_down.resizable(width = False, height = False)
+        server_down.geometry("700x300")
+        
+        # create & place label
+        down = Label(server_down, text = "Couldn't locate server address.\nPlease make sure server_address.txt is downloaded.", font = "Helvetica 14 bold")
+        down.place(relx=0.5,rely=0.5,anchor=CENTER)
+        print("server down")
+        server_down.mainloop()
 
     except:
         # window notifying client that the server is down

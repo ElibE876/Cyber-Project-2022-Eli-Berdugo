@@ -12,7 +12,7 @@ def load_key():
     return open("key.key","rb").read()
 
 # decrypt a specific line in the file
-def decrypt_string(key : Fernet,s):
+def decrypt_string(key : Fernet, s):
     return key.decrypt(s.encode()).decode()
 
 # encrypt a specific line in the file
@@ -21,7 +21,7 @@ def encrypt_string(key : Fernet, s):
     return word
 
 # decrypt all data in database file
-def decrypt_file(key,path):
+def decrypt_file(key, path):
     f = Fernet(key)
     with open(path, "r") as file:
         encrypted_data = file.read()
@@ -34,7 +34,7 @@ def decrypt_file(key,path):
     print(user_list)
 
 # update and re-encrypt all data in database file
-def update_database(path,key):
+def update_database(path, key):
     with open(path, "wb") as file:
         for user in user_list:
             f = Fernet(key)
@@ -44,16 +44,16 @@ def update_database(path,key):
             file.write(b'\n')
     
 # add new user to database
-def add_user(path,key,name,password):
-    if not invalid_user(True,name,password): # makes sure user is valid
-        append_user(path,key,name,password)
+def add_user(path, key, name, password):
+    if not invalid_user(True, name, password): # makes sure user is valid
+        append_user(path, key, name, password)
         return "username fine"
     else:
         return "Username invalid"
     
 # adds the new user to the actual database file and list
 def append_user(path, key, name, password):
-    user_list.append([name,password])
+    user_list.append([name, password])
     with open(path, "ab") as file:
         f = Fernet(key)
         file.write(encrypt_string(f,name))
@@ -62,7 +62,7 @@ def append_user(path, key, name, password):
         file.write(b'\n')
 
 # checks if potential new user is valid for addition
-def invalid_user(signup,name,password):
+def invalid_user(signup, name, password):
     if contains(name,',') or contains(name,':') or contains(password,',') or name == "":
         print("Invalid name or password")
         return True
@@ -74,8 +74,8 @@ def invalid_user(signup,name,password):
         return False
 
 # confirms details for user logging in
-def confirm_user(name,password):
-    if not invalid_user(False,name,password):
+def confirm_user(name, password):
+    if not invalid_user(False, name, password):
         for user in user_list:
             if user[0] == name and user[1] == password:
                 return True    

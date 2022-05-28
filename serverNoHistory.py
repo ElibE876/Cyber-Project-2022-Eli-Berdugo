@@ -1,4 +1,3 @@
-from ctypes.wintypes import MSG
 import socket
 import threading
 from cryptography.fernet import Fernet
@@ -190,15 +189,10 @@ def join_chat(client):
                     for chat in chat_list:
                         # find which chat is the requested one
                         if chat.get_chatname() == chatname:
-                            requested = chat
                             client.send((chat.get_chatname() + " successfully accessed").encode())
                             client.recv(MSG_SIZE) # receives "great"
-                            requested.add_participant(client)
+                            chat.add_participant(client)
 
-                    if not requested:
-                        client.send("theres no chat like that how did this even happen".encode())
-            else:
-                client.send("dude how".encode())
         else:
             # handles situation where there are no open chats
             response = client.recv(MSG_SIZE).decode()
@@ -231,7 +225,6 @@ def on_new_client(c, c_addr, first_go, existing):
     try:
         print("new client")
         if first_go: # client connecting now (not leaving a previous chatroom)
-            
             login_or_signup = c.recv(MSG_SIZE).decode()
             
             if login_or_signup == ":login":
@@ -275,7 +268,6 @@ def on_new_client(c, c_addr, first_go, existing):
                         c.send(result.encode())
                         break
 
-            
             # create Client object for new client and add them to server-wide client list
             client = Client(c, c_addr, new_name)
             clients_list.append(client)
