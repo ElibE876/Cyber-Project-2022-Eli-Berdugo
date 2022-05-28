@@ -185,7 +185,32 @@ def on_new_client(c, c_addr, first_go, existing):
         if first_go: # client connecting now (not leaving a previous chatroom)
             
             login_or_signup = c.recv(MSG_SIZE).decode()
-            if login_or_signup == "signup":
+            
+            if login_or_signup == ":login":
+                print("got login")
+                c.send("got login".encode())
+                while True:
+                    # receive username & password until correct
+                    new_name = c.recv(MSG_SIZE).decode()
+                    if new_name == ":login":
+                        c.send("got login".encode())
+                        new_name = c.recv(MSG_SIZE).decode()
+                    elif new_name == ":signup":
+                        login_or_signup = new_name
+                        break
+                    print("got name")
+                    c.send("got name".encode())
+                    new_pass = c.recv(MSG_SIZE).decode()
+                    print("got pass")
+                    if userbank.confirm_user(new_name, new_pass):
+                        print("login success")
+                        c.send("Login successful".encode())
+                        break
+                    else:
+                        print("login fail")
+                        c.send("Login failed".encode())
+            
+            if login_or_signup == ":signup":
                 c.send("got signup".encode())
                 while True:
                     # receive username & password until valid
@@ -202,26 +227,6 @@ def on_new_client(c, c_addr, first_go, existing):
                         c.send(result.encode())
                         break
 
-            elif login_or_signup == "login":
-                print("got login")
-                c.send("got login".encode())
-                while True:
-                    # receive username & password until correct
-                    new_name = c.recv(MSG_SIZE).decode()
-                    if new_name == "login":
-                        c.send("got login".encode())
-                        new_name = c.recv(MSG_SIZE).decode()
-                    print("got name")
-                    c.send("got name".encode())
-                    new_pass = c.recv(MSG_SIZE).decode()
-                    print("got pass")
-                    if userbank.confirm_user(new_name, new_pass):
-                        print("login success")
-                        c.send("Login successful".encode())
-                        break
-                    else:
-                        print("login fail")
-                        c.send("Login failed".encode())
             
             # create Client object for new client and add them to server-wide client list
             client = Client(c, c_addr, new_name)

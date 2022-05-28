@@ -59,8 +59,8 @@ class GUI:
     # function for signing up
     def signUp(self):
         # tell server we're signing up
-        c.send("signup".encode())
-        c.recv(MSG_SIZE)
+        c.send(":signup".encode())
+        print(c.recv(MSG_SIZE).decode())
         
         # create and set up signup window
         self.login.destroy()
@@ -127,7 +127,7 @@ class GUI:
                     self.takenLabel = Label(self.login, text = "please enter a name and password dude", font = "Helvetica 12", fg = "#ff0000")
                     self.takenLabel.place(relheight = 0.05, relx = 0.2, rely = 0.87)
             else:
-                c.send("login".encode())
+                c.send(":login".encode())
                 if c.recv(MSG_SIZE).decode() == "got login":   
                     c.send(self.name.encode())
                     print("sent name")
