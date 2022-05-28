@@ -438,7 +438,7 @@ def main():
         # create & place label
         down = Label(server_down, text = "Couldn't connect to server. Please try again later.", font = "Helvetica 14 bold")
         down.place(relx=0.5,rely=0.5,anchor=CENTER)
-        print("server down ",ADDR,PORT)
+        print("server down")
         server_down.mainloop()
 
 
