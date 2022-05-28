@@ -255,34 +255,30 @@ class GUI:
         clear1.grid_forget()
         clear2.grid_forget()
         
-        try:
-            chatnum = c.recv(MSG_SIZE).decode() # Get number of open chats from server
-            c.send("got chatnum".encode())
-            
-            if chatnum == "0": # create screen for if no chats are open
-                label = Label(self.root, text="There are no chats currently open.\nTry creating one!", pady=10)
-                label.grid(row=0, column=0)
-                # button to create chat
-                create_button = Button(self.root, text="Create Chat", width=30, pady=10, command=lambda: self.create_chat(label, create_button))
-                create_button.grid(row=1,column=0)
-
-            else:
-                # create screen for selecting chat to join
-                chatnum = int(chatnum)
-                label = Label(self.root, text="List of currently open chats:", pady=10)
-                label.grid(row=0, column=0)
-                for i in range(chatnum):
-                    chatname = c.recv(MSG_SIZE).decode()
-                    c.send("got chat".encode())
-                    chat_button = Button(self.root,text=chatname, padx=50, command=lambda chatname=chatname: self.finish_joining(chatname))
-                    chat_button.grid(row=i+1, column=0)
-
-                if c.recv(MSG_SIZE).decode() == "done?":
-                    c.send("chatlist received!".encode()) # update server
-                    print("chatlist received")
+        chatnum = c.recv(MSG_SIZE).decode() # Get number of open chats from server
+        c.send("got chatnum".encode())
         
-        except Exception as error:
-            print(error)
+        if chatnum == "0": # create screen for if no chats are open
+            label = Label(self.root, text="There are no chats currently open.\nTry creating one!", pady=10)
+            label.grid(row=0, column=0)
+            # button to create chat
+            create_button = Button(self.root, text="Create Chat", width=30, pady=10, command=lambda: self.create_chat(label, create_button))
+            create_button.grid(row=1,column=0)
+
+        else:
+            # create screen for selecting chat to join
+            chatnum = int(chatnum)
+            label = Label(self.root, text="List of currently open chats:", pady=10)
+            label.grid(row=0, column=0)
+            for i in range(chatnum):
+                chatname = c.recv(MSG_SIZE).decode()
+                c.send("got chat".encode())
+                chat_button = Button(self.root,text=chatname, padx=50, command=lambda chatname=chatname: self.finish_joining(chatname))
+                chat_button.grid(row=i+1, column=0)
+
+            if c.recv(MSG_SIZE).decode() == "done?":
+                c.send("chatlist received!".encode()) # update server
+                print("chatlist received")
 
     # finish the joining process and enter the chatroom
     def finish_joining(self, chatname):
