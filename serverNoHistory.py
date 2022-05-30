@@ -129,7 +129,10 @@ class Chat:
             else:
                 # broadcast message to other participants
                 for member in self.clients:
-                    member.send(message)
+                    try:
+                        member.send(message)
+                    except:
+                        self.remove_participant(member)
 
 def create_chat(client):
     '''

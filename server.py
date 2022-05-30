@@ -136,7 +136,10 @@ class Chat:
                 # broadcast message to other participants
                 self.chat_history += message.decode() + "\n"
                 for member in self.clients:
-                    member.send(message)
+                    try:
+                        member.send(message)
+                    except:
+                        self.remove_participant(member)
 
 def create_chat(client):
     '''
