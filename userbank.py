@@ -31,8 +31,6 @@ def decrypt_file(key, path):
         if len(user) == 2: # valid user
             user_list.append([decrypt_string(f,user[0]),decrypt_string(f,user[1])])
 
-    print(user_list)
-
 # update and re-encrypt all data in database file
 def update_database(path, key):
     with open(path, "wb") as file:
