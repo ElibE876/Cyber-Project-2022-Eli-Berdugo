@@ -4,10 +4,6 @@ from tkinter import messagebox
 from threading import Thread
 
 MSG_SIZE = 1024
-with open("server_address_nohistory.txt","r") as addr_file:
-    content = addr_file.read().split(",")
-    ADDR = content[0]
-    PORT = int(content[1])
 
 class GUI:
     def __init__(self):
