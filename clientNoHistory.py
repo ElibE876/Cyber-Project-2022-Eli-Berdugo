@@ -482,7 +482,7 @@ def main():
     try:
         with open("server_address_nohistory.txt","r") as addr_file:
             # obtain server address
-            content = addr_file.read().split(",")
+            content = addr_file.read().split(":")
             ADDR = content[0]
             PORT = int(content[1])
         
